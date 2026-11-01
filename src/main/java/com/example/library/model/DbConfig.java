@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 
-/** Параметры подключения и пула из файла ресурсов database.properties. */
+/* Параметры подключения и пула из файла ресурсов database.properties. */
 public final class DbConfig {
   private static final Logger log = LoggerFactory.getLogger(DbConfig.class);
 

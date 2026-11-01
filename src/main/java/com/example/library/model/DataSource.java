@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-/** Настраивает и создаёт пул соединений HikariCP. */
+/* Настраивает и создаёт пул соединений HikariCP. */
 public class DataSource implements ConnectionSource {
   private static final Logger log = LoggerFactory.getLogger(DataSource.class);
 
@@ -29,7 +29,6 @@ public class DataSource implements ConnectionSource {
       hikariConfig.setMinimumIdle(config.getInitialSize());
       hikariConfig.setConnectionTimeout(config.getTimeoutMs());
 
-      // Здесь же устанавливаются первые соединения: при неверных настройках выбросится исключение
       this.hikari = new HikariDataSource(hikariConfig);
     } catch (RuntimeException e) {
       log.error("Не удалось создать пул Hikari: {}", e.getMessage());

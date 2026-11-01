@@ -16,12 +16,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Собственный пул соединений.
- * Свободные соединения хранятся в потокобезопасной очереди и выдаются повторно.
- * Клиент получает обёртку над соединением: её close() не закрывает соединение, а возвращает его в пул,
- * поэтому DAO продолжают работать через try-with-resources.
- */
 public class MyConnectionPool implements ConnectionSource {
   private static final Logger log = LoggerFactory.getLogger(MyConnectionPool.class);
 
@@ -31,7 +25,6 @@ public class MyConnectionPool implements ConnectionSource {
   private final DbConfig config;
   private final int maxSize;
   private final long timeoutMs;
-
   // свободные соединения
   private final BlockingQueue<Connection> idle = new LinkedBlockingQueue<>();
   // сколько соединений создано всего (свободных и выданных), не больше maxSize
@@ -111,7 +104,7 @@ public class MyConnectionPool implements ConnectionSource {
     log.info("Пул соединений закрыт");
   }
 
-  // Атомарно занимает одно место в пуле (compareAndSet), без блокировок
+//проверяет лимит и занимает место (число total растёт). Соединение не открывает
   private boolean tryReserveSlot() {
     int current;
     do {
@@ -123,7 +116,7 @@ public class MyConnectionPool implements ConnectionSource {
     return true;
   }
 
-  // Открывает физическое соединение; место в пуле должно быть уже занято
+//открывает настоящее соединение с БД
   private Connection openNew() throws LibraryException {
     try {
       Connection connection = DriverManager.getConnection(
@@ -166,7 +159,7 @@ public class MyConnectionPool implements ConnectionSource {
     }
   }
 
-  // Возврат соединения в пул: сбрасываем состояние, которое мог изменить клиент (транзакцию)
+//принимает соединение обратно: сбрасывает транзакцию, кладёт в очередь idle
   private void release(Connection physical) {
     try {
       if (!physical.getAutoCommit()) {
